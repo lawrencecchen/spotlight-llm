@@ -2,6 +2,12 @@
 
 ## Getting started
 
+.env
+
+```
+OPENAI_API_KEY=sk-???
+```
+
 ```
 pnpm i
 pnpm tauri dev
