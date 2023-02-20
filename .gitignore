@@ -25,3 +25,5 @@ dist-ssr
 
 venv
 src-tauri/target
+
+.env
