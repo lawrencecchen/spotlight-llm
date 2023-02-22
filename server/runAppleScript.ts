@@ -37,3 +37,13 @@ export async function runAppleScript<T = string | void>(opts: {
     child.stdin?.end();
   })) as unknown as T;
 }
+
+export async function runBrowserJavaScript<T = string | void>(opts: {
+  script: string,
+}
+) {
+  return await runAppleScript({
+    script: `const chrome = Application('Google Chrome');
+    chrome.windows[0].activeTab.execute({javascript: "alert('example');" });`
+  })
+}

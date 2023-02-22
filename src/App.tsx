@@ -27,12 +27,13 @@ function Chat(props: {
 }) {
   const [message, setMessage] = useLocalStorage(`message:${props.id}`, "");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const sendMessage = trpc.chat.sendMessage.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
+  // const sendMessage = trpc.chat.sendMessage.useMutation({
+  //   onSuccess(data) {
+  //     console.log(data);
+  //   },
+  // });
   const completion = trpc.chat.completion.useMutation();
+  const sendMessage = completion;
   const [conversationId, setConversationId] = useLocalStorage<
     string | undefined
   >(`conversationId:${props.id}`, undefined);
@@ -132,9 +133,15 @@ function Chat(props: {
 
   return (
     <>
-      <div className="grow text-white py-2 overflow-auto flex flex-col">
+      <div
+        className="grow text-white py-2 overflow-auto flex flex-col"
+        data-tauri-drag-region
+      >
         {messageIds.length === 0 && (
-          <div className="self-center justify-self-center grow grid place-content-center w-full text-neutral-400 text-sm cursor-default select-none">
+          <div
+            className="self-center justify-self-center grow grid place-content-center w-full text-neutral-400 text-sm cursor-default select-none"
+            data-tauri-drag-region
+          >
             How can I help you?
           </div>
         )}
@@ -307,7 +314,10 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col backdrop-blur-md bg-black/30 rounded-[9px] relative overflow-hidden">
-      <div className="text-white border-b border-neutral-700/90 flex items-center divide-x divide-neutral-700/90 rounded-t-[9px] grow-0 shrink-0">
+      <div
+        data-tauri-drag-region
+        className="text-white border-b border-neutral-700/90 flex items-center divide-x divide-neutral-700/90 rounded-t-[9px] grow-0 shrink-0"
+      >
         <button
           className="p-2 focus:outline-none rounded-tl-[9px] select-none cursor-default"
           onClick={newTab}

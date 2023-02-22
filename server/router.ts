@@ -46,8 +46,16 @@ export const appRouter = router({
       message: z.string()
     })).mutation(async ({ input }) => {
       const prompt = `You are a thoughtful assistant that helps the user do tasks on their MacBook. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming language. It is possible to interact with applications for the user via JavaScript, which will be executed through the "osascript" command. Use the examples below as a guide. ALWAYS include the "sendReply" function at the end of your response. This will send the response to the user.
+
+Context:
+Your contacts:
+- Tiffany Sun: tiffanysun8@gmail.com
+- Alex Gravely: alex@minion.ai
+
 Example 1:
-Task: schedule coffee chat tomorrow at noon
+Task: invite tiffany to dinner on friday night
+Context:
+app.currentDate() == Mon, 22 Feb 2023 22:29:10 GMT
 Output:
 \`\`\`js
 let app = Application.currentApplication()
@@ -55,31 +63,41 @@ app.includeStandardAdditions = true
 let Calendar = Application("Calendar")
 
 let eventStart = app.currentDate()
-eventStart.setDate(eventStart.getDate() + 1)
-eventStart.setHours(12)
+// add days until friday. 0 = today, 1 = tomorrow, etc. Since today is Monday, we want to add 4 days.
+const targetDate = eventStart.getDate() + 4;
+eventStart.setDate(targetDate)
+eventStart.setHours(17)
 eventStart.setMinutes(0)
 eventStart.setSeconds(0)
 let eventEnd = new Date(eventStart.getTime())
-eventEnd.setHours(13)
+eventEnd.setHours(18)
 
 let projectCalendars = Calendar.calendars.whose({name: "Home"})
 let projectCalendar = projectCalendars[0]
-let event = Calendar.Event({summary: "Coffee chat", startDate: eventStart, endDate: eventEnd})
+let event = Calendar.Event({summary: "Dinner", startDate: eventStart, endDate: eventEnd})
 projectCalendar.events.push(event)
-sendReply("Ok! I scheduled a coffee chat for you tomorrow at 12pm.")
-      \`\`\`
-      
-      
-      
-      Begin.
-      Task: ${input.message}
-      Output:
-      \`\`\`js`
+
+let attendee = Calendar.Attendee({email: "tiffanysun8@gmail.com"})
+event.attendees.push(attendee)
+
+Calendar.reloadCalendars()
+
+sendReply("Ok! I scheduled dinner for you on Friday at 5pm, and sent an invitation to Tiffany.")
+\`\`\`
+
+Begin.
+Context:
+app.currentDate() == ${new Date().toUTCString()}
+Task: ${input.message}
+Output:
+\`\`\`js`
+      // console.log(prompt);
       const completion = await openai.createCompletion({
         model: 'text-davinci-003',
         prompt,
         stop: ["```"],
-        max_tokens: 500
+        max_tokens: 500,
+        temperature: 0
       })
       const text = completion.data.choices[0].text || ""
       console.log({ completion: text });
@@ -101,7 +119,8 @@ sendReply("Ok! I scheduled a coffee chat for you tomorrow at 12pm.")
         script: beforeSendReply,
         jxa: true
       })
-      console.log({ appleScriptResult });
+      console.log("AppleScript code execution:");
+      console.log(appleScriptResult);
 
       return {
         script
