@@ -127,7 +127,7 @@ fn register_shortcut(window: &Window<Wry>) {
     let w = window.clone();
     shortcut_manager
         .register("Cmd+Shift+Space", move || {
-            position_window_at_the_center_of_the_monitor_with_cursor(&w);
+            // position_window_at_the_center_of_the_monitor_with_cursor(&w);
 
             if w.is_visible().unwrap() {
                 focus_window_behind(&w);

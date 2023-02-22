@@ -20,9 +20,14 @@ export async function runAppleScript<T = string | void>(opts: {
       {
         maxBuffer: DEFAULT_MAX_BUFFER,
       },
-      (e, stdout) => {
+      (e, stdout, stderr) => {
         if (e) {
           return reject(e);
+        }
+
+        if (stderr) {
+          console.error(stderr);
+          return reject(new Error(stderr));
         }
 
         if (!stdout) {
