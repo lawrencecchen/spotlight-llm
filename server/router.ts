@@ -168,7 +168,7 @@ sendReply("Ok! I scheduled dinner on Thursday, Friday, Saturday, and Sunday at 5
 \`\`\`
 
 
-Begin.
+If the user's prompt does not need to use Calendar, only respond with sendReply(\`...\`). Remember to use markdown as described at the beginning. Begin.
 Task: ${input.message}
 Context:
 app.currentDate() == ${new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}
@@ -180,12 +180,20 @@ Output:
         prompt,
         stop: ["```"],
         max_tokens: 700,
-        temperature: 0
+        temperature: 0,
       })
       const text = completion.data.choices[0].text || ""
       console.log(text);
       // regular expression to match the text between sendReply(" and ")
-      const reply = text.match(/sendReply\("(.*)"\)/)?.[1] || ""
+      // const regex = /^sendReply\(['"`]([^'"`]*)['"`]/gms;
+      // const reply = regex.exec(text)?.[1] || "";
+      // const reply = text.match(regex)?.[1] || ""
+      // const reply = text.match(/sendReply\(["|'|`](.*)["|'|`]\)/gms)?.[1] || ""
+
+      let reply = text.split("sendReply")[1]
+      reply = reply.substring(2, reply.length - 3).replaceAll("\\`", "`")
+
+      console.log({ reply });
       const chatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
