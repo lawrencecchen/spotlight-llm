@@ -359,6 +359,8 @@ function App() {
   function commandNumberSetActiveTabId(i: number) {
     if (i === 9) {
       i = chatTabs.length - 1;
+    } else if (i === 0) {
+      i = 0;
     } else {
       i = i - 1;
     }
