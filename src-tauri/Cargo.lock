@@ -2457,6 +2457,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "spotlight-llm"
+version = "0.0.0"
+dependencies = [
+ "accessibility",
+ "accessibility-sys",
+ "cocoa",
+ "core-foundation",
+ "core-graphics",
+ "macos-accessibility-client",
+ "objc",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "window-vibrancy",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2711,24 +2729,6 @@ dependencies = [
  "time",
  "uuid 1.2.2",
  "walkdir",
-]
-
-[[package]]
-name = "tauri-macos-spotlight-app"
-version = "0.0.0"
-dependencies = [
- "accessibility",
- "accessibility-sys",
- "cocoa",
- "core-foundation",
- "core-graphics",
- "macos-accessibility-client",
- "objc",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "window-vibrancy",
 ]
 
 [[package]]

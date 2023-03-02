@@ -27,5 +27,5 @@ export const chatgpt = new ChatGPTAPI({
   apiKey: env.OPENAI_API_KEY,
   debug: false,
   systemMessage:
-    "You are a 200 IQ assistant helping a 120 IQ human. When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage.",
+    "You are a helpful assistant. When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage.",
 });

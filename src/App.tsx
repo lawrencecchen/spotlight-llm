@@ -41,11 +41,37 @@ function Chat(props: {
     `messageIds:${props.id}`,
     []
   );
+  const userScrolledUp = useRef(false);
+  const userScrolling = useRef(false);
+  const userScrollingTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  console.log("userScrolledUp", userScrolledUp.current);
+
+  function handleWheel(e: React.UIEvent<HTMLDivElement, UIEvent>) {
+    const element = e.currentTarget as HTMLDivElement;
+    const maxScrollTop = element.scrollHeight - element.clientHeight;
+    const scrollTop = element.scrollTop;
+    userScrolledUp.current = scrollTop > 0 && scrollTop < maxScrollTop;
+    userScrolling.current = true;
+    userScrollingTimeout.current && clearTimeout(userScrollingTimeout.current);
+    userScrollingTimeout.current = setTimeout(() => {
+      userScrolling.current = false;
+    }, 100);
+  }
 
   function scrollToBottom() {
     setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (!userScrolling.current) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
     }, 0);
+  }
+
+  function scrollToBottomIfNotScrolled() {
+    if (!userScrolledUp.current && !userScrolling.current) {
+      scrollToBottom();
+    }
   }
 
   trpc.chat.onProgress.useSubscription(
@@ -68,7 +94,7 @@ function Chat(props: {
           ...prev,
           [data.id]: data,
         }));
-        scrollToBottom();
+        scrollToBottomIfNotScrolled();
       },
     }
   );
@@ -131,6 +157,7 @@ function Chat(props: {
       <div
         className="grow text-white py-2 overflow-auto flex flex-col"
         data-tauri-drag-region
+        onWheel={handleWheel}
       >
         {messageIds.length === 0 && (
           <div
@@ -263,7 +290,7 @@ function App() {
   }
   function newTab() {
     const newTab = createNewTab();
-    setChatTabs((prev) => [...prev, newTab]);
+    setChatTabs((prev) => [newTab, ...prev]);
     setActiveTabId(newTab.id);
   }
 
@@ -308,7 +335,7 @@ function App() {
   useHotkeys(hotkeys);
 
   return (
-    <div className="h-screen flex flex-col backdrop-blur-md bg-black/30 rounded-[9px] relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-black/30 rounded-[9px] relative overflow-hidden">
       <div
         data-tauri-drag-region
         className="text-white border-b border-neutral-700/90 flex items-center divide-x divide-neutral-700/90 rounded-t-[9px] grow-0 shrink-0"
