@@ -1,4 +1,4 @@
-# spotlight llm
+# spotlight gpt
 
 ## Getting started
 

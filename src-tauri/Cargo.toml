@@ -1,9 +1,9 @@
 [package]
 authors = ["Lawrence Chen <lawrencechen2002@gmail.com>"]
-description = "Spotlight LLM"
+description = "Spotlight GPT"
 edition = "2021"
 license = ""
-name = "spotlight-llm"
+name = "spotlight-gpt"
 repository = ""
 rust-version = "1.57"
 version = "0.0.0"

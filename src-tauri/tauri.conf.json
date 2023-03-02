@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "tauri-macos-spotlight-app",
+    "productName": "spotlight-gpt",
     "version": "0.0.0"
   },
   "tauri": {

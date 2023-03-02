@@ -226,7 +226,7 @@ function Chat(props: {
                     },
                     // give paragraphs a margin
                     p({ node, ...props }) {
-                      return <p className="my-2" {...props} />;
+                      return <p className="my-4" {...props} />;
                     },
                   }}
                 />

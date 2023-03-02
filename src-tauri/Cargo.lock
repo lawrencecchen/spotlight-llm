@@ -2457,7 +2457,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "spotlight-llm"
+name = "spotlight-gpt"
 version = "0.0.0"
 dependencies = [
  "accessibility",
