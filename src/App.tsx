@@ -183,24 +183,28 @@ function Chat(props: {
                         borderBottomLeftRadius: "0.375rem",
                         borderBottomRightRadius: "0.375rem",
                         marginTop: "0px",
+                        display: "block",
                         // backgroundColor: "rgb(35,35,35)",
                       };
+                      if (inline) {
+                        return <code className="text-sm">{children}</code>;
+                      }
                       return (
-                        <div className="flex flex-col rounded-md my-2">
-                          <div className="rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
+                        <span className="block flex flex-col rounded-md my-2">
+                          <span className="block rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
                             <span className="font-sans text-xs">
                               {match?.[1] || "Code"}
                             </span>
-                            <div className="ml-auto mr-0">
+                            <span className="block ml-auto mr-0">
                               <CopyToClipboard content={String(children)} />
-                            </div>
-                          </div>
-                          {!inline && match ? (
+                            </span>
+                          </span>
+                          {match ? (
                             <SyntaxHighlighter
                               style={materialDark as any}
                               children={String(children).replace(/\n$/, "")}
                               language={match[1].toLowerCase()}
-                              PreTag="div"
+                              PreTag="span"
                               customStyle={customStyle}
                               {...props}
                             />
@@ -216,8 +220,12 @@ function Chat(props: {
                               {children}
                             </code>
                           )}
-                        </div>
+                        </span>
                       );
+                    },
+                    // give paragraphs a margin
+                    p({ node, ...props }) {
+                      return <p className="my-2" {...props} />;
                     },
                   }}
                 />
