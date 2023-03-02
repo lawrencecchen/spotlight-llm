@@ -336,6 +336,8 @@ function App() {
       const filtered = prev.filter((tab) => tab.id !== activeTab.id);
       return [newTab, ...filtered];
     });
+    const iTab = chatTabs.findIndex((tab) => tab.id === activeTab.id);
+    scrollTabIndexIntoView(iTab);
   }
 
   function createNewTab() {
