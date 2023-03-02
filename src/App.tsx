@@ -180,6 +180,7 @@ function Chat(props: {
                         borderBottomRightRadius: "0.375rem",
                         marginTop: "0px",
                         display: "block",
+                        overflow: "auto",
                         // backgroundColor: "rgb(35,35,35)",
                       };
                       if (inline) {
