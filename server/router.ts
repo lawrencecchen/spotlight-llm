@@ -84,6 +84,22 @@ export const appRouter = router({
         });
         return response;
       }),
+    summarize: publicProcedure
+      .input(z.object({ message: z.string() }))
+      .mutation(async ({ input }) => {
+        const response = await openai.createChatCompletion({
+          model: "gpt-3.5-turbo-0301",
+          messages: [
+            {
+              role: "user",
+              content: `Message: ${input.message}\n Generate a short summary (less than 5 words) of the message.`,
+            },
+          ],
+        });
+        const withoutEndingPunctation =
+          response.data.choices[0].message?.content.replace(/[\.\?\!]$/, "");
+        return withoutEndingPunctation;
+      }),
   }),
 });
 

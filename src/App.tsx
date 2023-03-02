@@ -21,15 +21,15 @@ You are a 200 IQ thoughtful assistant. Answer as concisely as possible for each 
 function Chat(props: {
   id: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onSuccess?: (data: ChatMessage) => void;
 }) {
   const [message, setMessage] = useLocalStorage(`message:${props.id}`, "");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  // const sendMessage = trpc.chat.sendMessage.useMutation({
-  //   onSuccess(data) {
-  //     console.log(data);
-  //   },
-  // });
-  const sendMessage = trpc.chat.sendMessage.useMutation();
+  const sendMessage = trpc.chat.sendMessage.useMutation({
+    onSuccess(data) {
+      props.onSuccess?.(data);
+    },
+  });
   const [conversationId, setConversationId] = useLocalStorage<
     string | undefined
   >(`conversationId:${props.id}`, undefined);
@@ -46,7 +46,6 @@ function Chat(props: {
   const userScrollingTimeout = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
-  console.log("userScrolledUp", userScrolledUp.current);
 
   function handleWheel(e: React.UIEvent<HTMLDivElement, UIEvent>) {
     const element = e.currentTarget as HTMLDivElement;
@@ -129,10 +128,6 @@ function Chat(props: {
       conversationId,
       parentMessageId: sendMessage.data?.id,
     });
-    // sendMessage.mutate({
-    //   id: props.id,
-    //   message,
-    // });
     setMessage("");
     const chatMessage = {
       id: crypto.randomUUID(),
@@ -249,7 +244,6 @@ function Chat(props: {
       </div>
       <AutosizeTextarea
         ref={textareaRef}
-        // placeholder="How can I help you?"
         placeholder="`⌘ + t` to start a new chat"
         className="w-full bg-transparent focus:outline-none text-neutral-50 text-xl px-4 pb-2.5 pt-2.5 shrink-0 border-t border-neutral-800/50 placeholder:text-neutral-400"
         rows={1}
@@ -280,6 +274,24 @@ function App() {
     },
   ]);
   const [activeTabId, setActiveTabId] = useState<string>(chatTabs[0].id);
+  const summarize = trpc.chat.summarize.useMutation();
+
+  async function handleActiveTabMessageSummary(chatMessage: ChatMessage) {
+    const activeTab = chatTabs.find((tab) => tab.id === activeTabId);
+    if (!activeTab) return;
+    // if the tab is not named "New chat" then don't update the title
+    if (activeTab.title !== "New chat") return;
+    const summary = await summarize.mutateAsync({ message: chatMessage.text });
+    if (!summary) return;
+    const newTab = {
+      ...activeTab,
+      title: summary,
+    };
+    setChatTabs((prev) => {
+      const filtered = prev.filter((tab) => tab.id !== activeTab.id);
+      return [newTab, ...filtered];
+    });
+  }
 
   function createNewTab() {
     const newTabId = String(crypto.randomUUID());
@@ -386,6 +398,7 @@ function App() {
         id={activeTabId}
         key={activeTabId}
         onKeyDown={getHotkeyHandler(hotkeys)}
+        onSuccess={(chatMessage) => handleActiveTabMessageSummary(chatMessage)}
       />
     </div>
   );
