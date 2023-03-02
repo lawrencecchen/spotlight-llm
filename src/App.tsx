@@ -18,16 +18,21 @@ const promptPrefix = `
 You are a 200 IQ thoughtful assistant. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage. Use the examples below as a guide.
 `.trim();
 
+type ChatSummarizePayload = { userInput: string; assistantOutput: string };
+
 function Chat(props: {
   id: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  onSuccess?: (data: ChatMessage) => void;
+  onSuccess?: (opts: ChatSummarizePayload) => void;
 }) {
   const [message, setMessage] = useLocalStorage(`message:${props.id}`, "");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const sendMessage = trpc.chat.sendMessage.useMutation({
-    onSuccess(data) {
-      props.onSuccess?.(data);
+    onSuccess(data, variables) {
+      props.onSuccess?.({
+        userInput: variables.message,
+        assistantOutput: data.text,
+      });
     },
   });
   const [conversationId, setConversationId] = useLocalStorage<
@@ -181,7 +186,6 @@ function Chat(props: {
                         marginTop: "0px",
                         display: "block",
                         overflow: "auto",
-                        // backgroundColor: "rgb(35,35,35)",
                       };
                       if (inline) {
                         return <code className="text-sm">{children}</code>;
@@ -313,16 +317,16 @@ function App() {
     if (activeTab.title !== "New chat") return;
     const diff = new Date().getTime() - activeTab.lastFocused.getTime();
     if (diff > 60 * 1000) {
-      createNewTab();
+      createAndGotoNewTab();
     }
   });
 
-  async function handleActiveTabMessageSummary(chatMessage: ChatMessage) {
+  async function handleActiveTabMessageSummary(opts: ChatSummarizePayload) {
     const activeTab = chatTabs.find((tab) => tab.id === activeTabId);
     if (!activeTab) return;
     // if the tab is not named "New chat" then don't update the title
     if (activeTab.title !== "New chat") return;
-    const summary = await summarize.mutateAsync({ message: chatMessage.text });
+    const summary = await summarize.mutateAsync(opts);
     if (!summary) return;
     const newTab = {
       ...activeTab,
@@ -344,7 +348,7 @@ function App() {
       lastFocused: now,
     };
   }
-  function newTab() {
+  function createAndGotoNewTab() {
     const newTab = createNewTab();
     setChatTabs((prev) => [newTab, ...prev]);
     setActiveTabId(newTab.id);
@@ -406,8 +410,8 @@ function App() {
   }
 
   const hotkeys = [
-    ["mod+n", newTab],
-    ["mod+t", newTab],
+    ["mod+n", createAndGotoNewTab],
+    ["mod+t", createAndGotoNewTab],
     [
       "mod+w",
       () => handleClose(chatTabs.findIndex((tab) => tab.id === activeTabId)),
@@ -430,7 +434,7 @@ function App() {
       >
         <button
           className="p-2 focus:outline-none rounded-tl-[9px] select-none cursor-default"
-          onClick={newTab}
+          onClick={createAndGotoNewTab}
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -477,7 +481,7 @@ function App() {
         id={activeTabId}
         key={activeTabId}
         onKeyDown={getHotkeyHandler(hotkeys as any)}
-        onSuccess={(chatMessage) => handleActiveTabMessageSummary(chatMessage)}
+        onSuccess={handleActiveTabMessageSummary}
       />
     </div>
   );

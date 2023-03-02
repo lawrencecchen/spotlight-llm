@@ -85,14 +85,22 @@ export const appRouter = router({
         return response;
       }),
     summarize: publicProcedure
-      .input(z.object({ message: z.string() }))
+      .input(z.object({ userInput: z.string(), assistantOutput: z.string() }))
       .mutation(async ({ input }) => {
         const response = await openai.createChatCompletion({
           model: "gpt-3.5-turbo-0301",
           messages: [
             {
               role: "user",
-              content: `Message: ${input.message}\n Generate a short summary (less than 5 words) of the message.`,
+              content: input.userInput,
+            },
+            {
+              role: "assistant",
+              content: input.assistantOutput,
+            },
+            {
+              role: "user",
+              content: `Summarize our conversation in 5 words or less.`,
             },
           ],
         });
