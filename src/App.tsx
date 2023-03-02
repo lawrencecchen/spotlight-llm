@@ -356,6 +356,17 @@ function App() {
     scrollTabIndexIntoView(nextIndex);
   }
 
+  function commandNumberSetActiveTabId(i: number) {
+    if (i === 9) {
+      i = chatTabs.length - 1;
+    } else {
+      i = i - 1;
+    }
+    if (i < 0 || i >= chatTabs.length) return;
+    setActiveTabId(chatTabs[i].id);
+    scrollTabIndexIntoView(i);
+  }
+
   const hotkeys = [
     ["mod+n", newTab],
     ["mod+t", newTab],
@@ -367,6 +378,9 @@ function App() {
     ["ctrl+tab", nextTab],
     ["mod+shift+[", prevTab],
     ["ctrl+shift+tab", prevTab],
+    ...Array.from({ length: 10 }).map(
+      (_, i) => [`mod+${i}`, () => commandNumberSetActiveTabId(i)] as HotkeyItem
+    ),
   ] satisfies Array<HotkeyItem>;
   useHotkeys(hotkeys);
 
@@ -424,7 +438,7 @@ function App() {
       <Chat
         id={activeTabId}
         key={activeTabId}
-        onKeyDown={getHotkeyHandler(hotkeys)}
+        onKeyDown={getHotkeyHandler(hotkeys as any)}
         onSuccess={(chatMessage) => handleActiveTabMessageSummary(chatMessage)}
       />
     </div>
