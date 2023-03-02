@@ -48,6 +48,7 @@ export const appRouter = router({
       const prompt = `You are a thoughtful assistant that helps the user do tasks on their MacBook. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming language. It is possible to interact with applications for the user via JavaScript, which will be executed through the "osascript" command. Use the examples below as a guide. ALWAYS include the "sendReply" function at the end of your response. This will send the response to the user.
 
 Your contacts:
+- Austin Wang: austinpowers1258@gmail.com
 - Lawrence Chen: lawrence@minion.ai
 - Alex Gravely: alex@minion.ai
 - Kaushik Patnaik kaushik@minion.ai
@@ -168,7 +169,7 @@ sendReply("Ok! I scheduled dinner on Thursday, Friday, Saturday, and Sunday at 5
 \`\`\`
 
 
-If the user's prompt does not need to use Calendar, only respond with sendReply(\`...\`). Remember to use markdown as described at the beginning. Begin.
+Begin.
 Task: ${input.message}
 Context:
 app.currentDate() == ${new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}
