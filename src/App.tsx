@@ -98,10 +98,6 @@ function Chat(props: {
     }
   );
 
-  useEffect(() => {
-    invoke("init_spotlight_window");
-  }, []);
-
   useEventListener("focus", () => {
     textareaRef.current?.select();
   });
@@ -272,6 +268,8 @@ function Chat(props: {
 type ChatTab = {
   id: string;
   title: string;
+  createdAt: Date;
+  lastFocused: Date;
 };
 
 function App() {
@@ -279,10 +277,44 @@ function App() {
     {
       id: crypto.randomUUID(),
       title: "New chat",
+      createdAt: new Date(),
+      lastFocused: new Date(),
     },
   ]);
   const [activeTabId, setActiveTabId] = useState<string>(chatTabs[0].id);
   const summarize = trpc.chat.summarize.useMutation();
+
+  useEffect(() => {
+    invoke("init_spotlight_window");
+  }, []);
+
+  useEffect(() => {
+    const activeTab = chatTabs.find((tab) => tab.id === activeTabId);
+    if (!activeTab) return;
+    document.title = activeTab.title;
+    // update lastFocused
+    const newTabs = chatTabs.map((tab) => {
+      if (tab.id === activeTabId) {
+        return {
+          ...tab,
+          lastFocused: new Date(),
+        };
+      }
+      return tab;
+    });
+    setChatTabs(newTabs);
+  }, [activeTabId]);
+
+  useEventListener("focus", () => {
+    // if tab is more than 1 minute old, create a new one
+    const activeTab = chatTabs.find((tab) => tab.id === activeTabId);
+    if (!activeTab) return;
+    if (activeTab.title !== "New chat") return;
+    const diff = new Date().getTime() - activeTab.lastFocused.getTime();
+    if (diff > 60 * 1000) {
+      createNewTab();
+    }
+  });
 
   async function handleActiveTabMessageSummary(chatMessage: ChatMessage) {
     const activeTab = chatTabs.find((tab) => tab.id === activeTabId);
@@ -303,9 +335,12 @@ function App() {
 
   function createNewTab() {
     const newTabId = String(crypto.randomUUID());
+    const now = new Date();
     return {
       id: newTabId,
       title: "New chat",
+      createdAt: now,
+      lastFocused: now,
     };
   }
   function newTab() {
