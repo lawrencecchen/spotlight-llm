@@ -477,7 +477,6 @@ function App() {
             </div>
           ))}
         </div>
-        {/* <span className="text-xs">{activeTabId}</span> */}
       </div>
       <Chat
         id={activeTabId}
