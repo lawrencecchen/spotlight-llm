@@ -318,11 +318,26 @@ function App() {
     }
   }
 
+  const tabsScrollContainer = useRef<HTMLDivElement>(null);
+
+  function scrollTabIndexIntoView(i: number) {
+    const tabContainerEl = tabsScrollContainer.current;
+    if (!tabContainerEl) return;
+    const tabEl = tabContainerEl.children[i] as HTMLDivElement;
+    if (!tabEl) return;
+    tabEl.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
+
   function nextTab() {
     const index = chatTabs.findIndex((tab) => tab.id === activeTabId);
     if (index === -1) return;
     const nextIndex = (index + 1) % chatTabs.length;
     setActiveTabId(chatTabs[nextIndex].id);
+    scrollTabIndexIntoView(nextIndex);
   }
 
   function prevTab() {
@@ -330,6 +345,7 @@ function App() {
     if (index === -1) return;
     const nextIndex = (index - 1 + chatTabs.length) % chatTabs.length;
     setActiveTabId(chatTabs[nextIndex].id);
+    scrollTabIndexIntoView(nextIndex);
   }
 
   const hotkeys = [
@@ -358,7 +374,10 @@ function App() {
         >
           <Plus className="w-4 h-4" />
         </button>
-        <div className="flex items-center divide-x divide-neutral-700/90 overflow-x-auto">
+        <div
+          className="flex items-center divide-x divide-neutral-700/90 overflow-x-auto"
+          ref={tabsScrollContainer}
+        >
           {chatTabs.map((tab, i) => (
             <div
               key={tab.id}
