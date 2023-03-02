@@ -228,6 +228,16 @@ function Chat(props: {
                     p({ node, ...props }) {
                       return <p className="py-1" {...props} />;
                     },
+                    // links should open in a new tab
+                    a({ node, ...props }) {
+                      return (
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          {...props}
+                        />
+                      );
+                    },
                   }}
                 />
               </div>
