@@ -15,10 +15,7 @@ import { LoadingIndicator } from "./components/LoadingIndicator";
 import { trpc } from "./utils/trpc";
 
 const promptPrefix = `
-You are a thoughtful assistant that helps the user do tasks on their MacBook. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage. Use the examples below as a guide.
-
-Example task: schedule coffee tomorrow at 12pm
-Output:
+You are a 200 IQ thoughtful assistant. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage. Use the examples below as a guide.
 `.trim();
 
 function Chat(props: {
@@ -32,8 +29,7 @@ function Chat(props: {
   //     console.log(data);
   //   },
   // });
-  const completion = trpc.chat.completion.useMutation();
-  const sendMessage = completion;
+  const sendMessage = trpc.chat.sendMessage.useMutation();
   const [conversationId, setConversationId] = useLocalStorage<
     string | undefined
   >(`conversationId:${props.id}`, undefined);
@@ -101,17 +97,16 @@ function Chat(props: {
     } else if (sendMessage.isLoading) {
       return;
     }
+    sendMessage.mutate({
+      id: props.id,
+      message,
+      conversationId,
+      parentMessageId: sendMessage.data?.id,
+    });
     // sendMessage.mutate({
     //   id: props.id,
     //   message,
-    //   conversationId,
-    //   parentMessageId: sendMessage.data?.id,
-    //   promptPrefix,
     // });
-    completion.mutate({
-      id: props.id,
-      message,
-    });
     setMessage("");
     const chatMessage = {
       id: crypto.randomUUID(),
@@ -206,7 +201,7 @@ function Chat(props: {
                 />
               </div>
               {i !== messageIds.length - 1 && (
-                <hr className="my-2 border-neutral-800/90 invert select-none" />
+                <hr className="my-2 border-neutral-800/90 text-neutral-800 select-none" />
               )}
             </React.Fragment>
           );
