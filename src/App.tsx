@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { type ChatMessage } from "chatgpt";
 import clsx from "clsx";
 import { Plus, X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -13,12 +13,92 @@ import AutosizeTextarea from "./components/AutosizeTextarea";
 import { CopyToClipboard } from "./components/CopyToClipboard";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import { trpc } from "./utils/trpc";
+import { Terminal } from "xterm";
 
 const promptPrefix = `
 You are a 200 IQ thoughtful assistant. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage. Use the examples below as a guide.
 `.trim();
 
 type ChatSummarizePayload = { userInput: string; assistantOutput: string };
+
+function XTerm() {}
+
+function MessageItem(props: { message: ChatMessage }) {
+  const { message } = props;
+  console.log(message);
+  return (
+    <>
+      <div
+        className={clsx("px-2", {
+          "text-neutral-400": message.role === "user",
+        })}
+      >
+        <ReactMarkdown
+          children={message.text}
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || "");
+              const customStyle = {
+                fontSize: "0.8rem",
+                borderRadius: "0px",
+                borderBottomLeftRadius: "0.375rem",
+                borderBottomRightRadius: "0.375rem",
+                marginTop: "0px",
+                display: "block",
+                overflow: "auto",
+              };
+              if (inline) {
+                return <code className="text-sm">{children}</code>;
+              }
+              return (
+                <span className="block flex flex-col rounded-md my-2">
+                  <span className="block rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
+                    <span className="font-sans text-xs">
+                      {match?.[1] || "Code"}
+                    </span>
+                    <span className="block ml-auto mr-0">
+                      <CopyToClipboard content={String(children)} />
+                    </span>
+                  </span>
+                  {match ? (
+                    <SyntaxHighlighter
+                      style={materialDark as any}
+                      children={String(children).replace(/\n$/, "")}
+                      language={match[1].toLowerCase()}
+                      PreTag="span"
+                      customStyle={customStyle}
+                      {...props}
+                    />
+                  ) : (
+                    <code
+                      className={clsx("px-3 py-2", className)}
+                      style={{
+                        ...customStyle,
+                        backgroundColor: "rgb(35,35,35)",
+                      }}
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  )}
+                </span>
+              );
+            },
+            // give paragraphs a margin
+            p({ node, ...props }) {
+              return <p className="py-1" {...props} />;
+            },
+            // links should open in a new tab
+            a({ node, ...props }) {
+              return <a target="_blank" rel="noopener noreferrer" {...props} />;
+            },
+          }}
+        />
+      </div>
+    </>
+  );
+}
 
 function Chat(props: {
   id: string;
@@ -166,81 +246,8 @@ function Chat(props: {
         {messageIds.map((messageId, i) => {
           const message = messages[messageId];
           return (
-            <React.Fragment key={message.id}>
-              <div
-                className={clsx("px-2", {
-                  "text-neutral-400": message.role === "user",
-                })}
-              >
-                <ReactMarkdown
-                  children={message.text}
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ node, inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      const customStyle = {
-                        fontSize: "0.8rem",
-                        borderRadius: "0px",
-                        borderBottomLeftRadius: "0.375rem",
-                        borderBottomRightRadius: "0.375rem",
-                        marginTop: "0px",
-                        display: "block",
-                        overflow: "auto",
-                      };
-                      if (inline) {
-                        return <code className="text-sm">{children}</code>;
-                      }
-                      return (
-                        <span className="block flex flex-col rounded-md my-2">
-                          <span className="block rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
-                            <span className="font-sans text-xs">
-                              {match?.[1] || "Code"}
-                            </span>
-                            <span className="block ml-auto mr-0">
-                              <CopyToClipboard content={String(children)} />
-                            </span>
-                          </span>
-                          {match ? (
-                            <SyntaxHighlighter
-                              style={materialDark as any}
-                              children={String(children).replace(/\n$/, "")}
-                              language={match[1].toLowerCase()}
-                              PreTag="span"
-                              customStyle={customStyle}
-                              {...props}
-                            />
-                          ) : (
-                            <code
-                              className={clsx("px-3 py-2", className)}
-                              style={{
-                                ...customStyle,
-                                backgroundColor: "rgb(35,35,35)",
-                              }}
-                              {...props}
-                            >
-                              {children}
-                            </code>
-                          )}
-                        </span>
-                      );
-                    },
-                    // give paragraphs a margin
-                    p({ node, ...props }) {
-                      return <p className="py-1" {...props} />;
-                    },
-                    // links should open in a new tab
-                    a({ node, ...props }) {
-                      return (
-                        <a
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          {...props}
-                        />
-                      );
-                    },
-                  }}
-                />
-              </div>
+            <React.Fragment key={messageId}>
+              <MessageItem message={message} />
               {i !== messageIds.length - 1 && (
                 <hr className="my-2 border-neutral-800/90 text-neutral-800 select-none" />
               )}

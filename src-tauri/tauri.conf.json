@@ -11,7 +11,16 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "shell": {
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "binaries/app",
+            "sidecar": true
+          }
+        ]
+      }
     },
     "bundle": {
       "active": true,
@@ -28,7 +37,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.spotlit.dev",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

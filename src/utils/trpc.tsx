@@ -7,8 +7,9 @@ import { type AppRouter } from "../../server/router";
 
 export const trpc = createTRPCReact<AppRouter>();
 
-// const TRPC_URL = "http://localhost:8080/trpc";
-const TRPC_WS_URL = "ws://localhost:8080/";
+// const TRPC_URL = "http://localhost:5907/trpc";
+// SPOT in numbers: 5907
+const TRPC_WS_URL = "ws://localhost:5907/";
 
 function getEndingLink() {
   const client = createWSClient({

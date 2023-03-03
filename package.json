@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "run-p dev:*",
     "dev:vite": "vite",
+    "dev:server": "tsx watch ./server/index.ts",
     "build": "tsc && vite build",
+    "build:server": "tsup --outDir ./server/dist ./server/index.ts",
     "preview": "vite preview",
     "tauri": "tauri",
-    "dev:server": "tsx watch ./server/index.ts"
+    "package": "pnpm build:server && pkg ./server/dist/index.cjs",
+    "package2": "pnpm build:server && pkg -t node18-macos-arm64 --public-packages \"*\" --public --output src-tauri/binaries/app ./server/dist/index.cjs && node scripts/move-binary.js"
   },
   "dependencies": {
     "@keyv/sqlite": "^3.6.4",
@@ -40,6 +43,9 @@
     "unocss-preset-autoprefixer": "^0.0.5",
     "usehooks-ts": "^2.9.1",
     "ws": "^8.12.1",
+    "xterm": "^5.1.0",
+    "xterm-addon-fit": "^0.7.0",
+    "xterm-addon-web-links": "^0.8.0",
     "zod": "^3.20.6"
   },
   "devDependencies": {
@@ -52,7 +58,10 @@
     "@types/ws": "^8.5.4",
     "@unocss/reset": "^0.50.3",
     "@vitejs/plugin-react": "^3.1.0",
+    "execa": "^7.0.0",
     "npm-run-all": "^4.1.5",
+    "pkg": "^5.8.0",
+    "tsup": "^6.6.3",
     "tsx": "^3.12.3",
     "typescript": "^4.9.5",
     "unocss": "^0.50.3",
