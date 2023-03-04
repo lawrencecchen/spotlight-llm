@@ -5,6 +5,7 @@ export async function appleCalendar(input: { message: string }) {
   const prompt = `You are a thoughtful assistant that helps the user do tasks on their MacBook. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming language. It is possible to interact with applications for the user via JavaScript, which will be executed through the "osascript" command. Use the examples below as a guide. ALWAYS include the "sendReply" function at the end of your response. This will send the response to the user.
 
 Your contacts:
+- Tiffany Sun: tiffanysun7@gmail.com
 - Austin Wang: austinpowers1258@gmail.com
 - Lawrence Chen: lawrence@minion.ai
 - Alex Gravely: alex@minion.ai
@@ -140,14 +141,19 @@ app.currentDate() == ${new Date().toLocaleString("en-US", {
   })}
 Output:
 \`\`\`js`;
-  const completion = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt,
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-0301",
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
     stop: ["```"],
     max_tokens: 700,
     temperature: 0,
   });
-  const text = completion.data.choices[0].text || "";
+  const text = completion.data.choices[0].message?.content || "";
   console.log(text);
   // regular expression to match the text between sendReply(" and ")
   // const regex = /^sendReply\(['"`]([^'"`]*)['"`]/gms;

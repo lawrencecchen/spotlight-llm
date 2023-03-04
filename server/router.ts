@@ -6,6 +6,7 @@ import { SendMessageOptionsSchema, chatgpt } from "./chatgpt";
 import { publicProcedure, router } from "./trpc";
 import { appleCalendar } from "./prompts/appleCalendar";
 import { openai } from "./utils/openai";
+import { decideTool } from "./utils/toolRouter";
 
 const eventsMap = new Map<string, EventEmitter>();
 
@@ -73,16 +74,48 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const { message, ...rest } = input;
-        const response = await chatgpt.sendMessage(message, {
-          ...rest,
-          onProgress(partialResponse) {
-            if (!eventsMap.has(input.id)) {
-              eventsMap.set(input.id, new EventEmitter());
-            }
-            eventsMap.get(input.id)?.emit("onProgress", partialResponse);
-          },
-        });
-        return response;
+
+        const tool = await decideTool({ message: input.message });
+
+        console.log("tool", tool);
+
+        function emit(message: ChatMessage) {
+          if (!eventsMap.has(input.id)) {
+            eventsMap.set(input.id, new EventEmitter());
+          }
+          eventsMap.get(input.id)?.emit("onProgress", message);
+        }
+
+        switch (tool) {
+          case "ChatGPT": {
+            const response = await chatgpt.sendMessage(message, {
+              ...rest,
+              onProgress(partialResponse) {
+                emit(partialResponse);
+              },
+            });
+            return response;
+          }
+          case "Calendar": {
+            emit({
+              id: crypto.randomUUID(),
+              role: "assistant",
+              text: "Setting up calendar event...",
+            });
+            const { reply } = await appleCalendar({
+              message: input.message,
+            });
+            const chatMessage = {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              text: reply,
+            } satisfies ChatMessage;
+            emit(chatMessage);
+            return chatMessage;
+          }
+          default:
+            throw new Error("Unknown tool");
+        }
       }),
     summarize: publicProcedure
       .input(z.object({ userInput: z.string(), assistantOutput: z.string() }))
