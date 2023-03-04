@@ -5,7 +5,6 @@ export async function decideTool(opts: { message: string }) {
   const taskRouterPrompt = `Decide what tools to use to respond to a user message. Possible tools:
 - Calendar
 - ChatGPT
-- Google
 
 Example 1:
 Message: open image in pil
