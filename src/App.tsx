@@ -466,8 +466,11 @@ function App() {
                 }
               )}
               onClick={() => setActiveTabId(tab.id)}
+              data-tauri-drag-region
             >
-              <span className="truncate">{tab.title}</span>
+              <span className="truncate" data-tauri-drag-region>
+                {tab.title}
+              </span>
               <button
                 className={clsx(
                   "p-0.5 hover:bg-neutral-700/80 rounded cursor-default",
