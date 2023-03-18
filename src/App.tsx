@@ -312,9 +312,9 @@ function Chat(props: {
             className="self-center justify-self-center grow grid place-content-center w-full text-neutral-400 text-sm cursor-default select-none"
             data-tauri-drag-region
           >
-            <div data-tauri-drag-region className="text-center">
+            {/* <div data-tauri-drag-region className="text-center">
               How can I help you?
-            </div>
+            </div> */}
             <div className="text-center mt-4">
               <RadioGroup value={model} onChange={setModel} className="mt-2">
                 <RadioGroup.Label className="sr-only">
@@ -353,8 +353,11 @@ function Chat(props: {
                     <RadioGroup.Label as="span">gpt-4</RadioGroup.Label>
                   </RadioGroup.Option>
                 </div>
-                <div data-tauri-drag-region className="text-center mt-1.5">
-                  <code className="text-xs">tab</code> to toggle
+                <div
+                  data-tauri-drag-region
+                  className="text-center mt-3 text-xs"
+                >
+                  <code className="text-[11px]">tab</code> to toggle
                 </div>
               </RadioGroup>
             </div>
@@ -383,7 +386,7 @@ function Chat(props: {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={async (e) => {
-          getHotkeyHandler(hotkeys)(e);
+          getHotkeyHandler(hotkeys as any)(e);
           props.onKeyDown?.(e);
           if (e.key === "Enter" && !e.shiftKey && message.trim().length > 0) {
             e.preventDefault();
