@@ -14,10 +14,6 @@ import { CopyToClipboard } from "./components/CopyToClipboard";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import { trpc } from "./utils/trpc";
 
-const promptPrefix = `
-You are a 200 IQ thoughtful assistant. Answer as concisely as possible for each response (e.g. don’t be verbose). When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage. Use the examples below as a guide.
-`.trim();
-
 type ChatSummarizePayload = { userInput: string; assistantOutput: string };
 
 const MessageList = React.memo(
