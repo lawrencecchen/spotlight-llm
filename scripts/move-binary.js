@@ -7,7 +7,7 @@
  * When `tauri build` is ran, it looks for the binary name appended with the platform specific postfix.
  */
 
-import execa from "execa";
+import { execa } from "execa";
 import fs from "node:fs";
 
 let extension = "";

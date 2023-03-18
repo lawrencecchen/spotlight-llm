@@ -16,7 +16,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:server": "tsx watch ./server/index.ts",
-    "package": "rollup -c && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.cjs"
+    "package": "rollup -c && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",
