@@ -176,6 +176,7 @@ function Chat(props: {
     `messageIds:${props.id}`,
     []
   );
+  const [openaiApiKey, setApiKey] = useLocalStorage<string>(`openaiApiKey`, "");
   // const memoMessageIds = useMemo(() => messageIds, []);
 
   const userScrolledUp = useRef(false);
@@ -265,6 +266,7 @@ function Chat(props: {
       conversationId,
       parentMessageId: sendMessage.data?.id,
       model,
+      apiKey: openaiApiKey,
     });
     setMessage("");
     const chatMessage = {
@@ -300,12 +302,18 @@ function Chat(props: {
 
   useHotkeys(hotkeys);
 
+  const [apiKeyFocused, setOpenaiApiKeyFocused] = useState(false);
+
   return (
     <>
       <div
         className="grow text-white py-2 overflow-auto flex flex-col"
         data-tauri-drag-region
         onWheel={handleWheel}
+        onClick={() => {
+          setOpenaiApiKeyFocused(false);
+          textareaRef.current?.focus?.();
+        }}
       >
         {messageIds.length === 0 && (
           <div
@@ -358,6 +366,18 @@ function Chat(props: {
                   className="text-center mt-3 text-xs"
                 >
                   <code className="text-[11px]">tab</code> to toggle
+                </div>
+                <div className="text-center text-xs">
+                  <input
+                    type={apiKeyFocused ? "text" : "password"}
+                    tabIndex={-1}
+                    placeholder="OPENAI_API_KEY"
+                    value={openaiApiKey}
+                    onFocus={() => setOpenaiApiKeyFocused(true)}
+                    onBlur={() => setOpenaiApiKeyFocused(false)}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="border text-neutral-200 bg-neutral-800/80 border-neutral-700/80 px-2 py-0.5 text-xs rounded-lg mt-2"
+                  />
                 </div>
               </RadioGroup>
             </div>

@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   SYSTEM_MESSAGE,
   SendMessageOptionsSchema,
-  chatgpt,
   messageStore,
   modelSchema,
 } from "./chatgpt";
@@ -13,7 +12,6 @@ import { publicProcedure, router } from "./trpc";
 import { appleCalendar } from "./prompts/appleCalendar";
 import { openai } from "./utils/openai";
 import { decideTool } from "./utils/toolRouter";
-import { env } from "./env";
 
 const eventsMap = new Map<string, EventEmitter>();
 
@@ -77,6 +75,7 @@ export const appRouter = router({
             id: z.string(),
             message: z.string(),
             model: modelSchema.default("gpt-3.5-turbo"),
+            apiKey: z.string(),
           })
           .merge(SendMessageOptionsSchema)
       )
@@ -84,6 +83,14 @@ export const appRouter = router({
         const { message, ...rest } = input;
 
         const tool = await decideTool({ message: input.message });
+        const chatgpt = new ChatGPTAPI({
+          apiKey: input.apiKey,
+          systemMessage: SYSTEM_MESSAGE,
+          messageStore,
+          completionParams: {
+            model: input.model,
+          },
+        });
 
         function emit(message: ChatMessage) {
           if (!eventsMap.has(input.id)) {
@@ -95,14 +102,7 @@ export const appRouter = router({
         switch (tool) {
           case "ChatGPT": {
             console.log(input.model);
-            const chatgpt = new ChatGPTAPI({
-              apiKey: env.OPENAI_API_KEY,
-              systemMessage: SYSTEM_MESSAGE,
-              messageStore,
-              completionParams: {
-                model: input.model,
-              },
-            });
+
             const response = await chatgpt.sendMessage(message, {
               ...rest,
               onProgress(partialResponse) {

@@ -1,5 +1,5 @@
 {
-  "name": "spotlight-gpt",
+  "name": "spotlit",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,12 +12,13 @@
   "scripts": {
     "dev": "run-p dev:*",
     "dev:vite": "vite",
-    "build": "tsc && vite build",
+    "build": "run-p build:*",
+    "build:frontend": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:server": "tsx watch ./server/index.ts",
     "esbuild": "./node_modules/.bin/esbuild ./server/index.ts --bundle --platform=node --format=cjs --loader:.wasm=empty --outfile=./server-dist/index.cjs",
-    "package": "pnpm esbuild && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.js"
+    "build:package": "pnpm esbuild && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.js"
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.2",
@@ -36,7 +37,6 @@
     "chromadb": "^1.3.1",
     "clsx": "^1.2.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "keyv": "^4.5.2",
     "lucide-react": "^0.121.0",
