@@ -141,7 +141,7 @@ fn register_shortcut(window: &Window<Wry>) {
 
     shortcut_manager
         .register("Cmd+Shift+Space", move || {
-            // position_window_at_the_center_of_the_monitor_with_cursor(&window);
+            position_window_at_the_center_of_the_monitor_with_cursor(&window);
             // let script = Script::new(
             //     r#"tell application "System Events"
             //           set frontApp to name of first application process whose frontmost is true

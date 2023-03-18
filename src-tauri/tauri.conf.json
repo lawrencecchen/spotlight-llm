@@ -28,7 +28,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.spotlit.dev",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -57,7 +57,7 @@
       {
         "fullscreen": false,
         "height": 700,
-        "title": "tauri-macos-spotlight-app",
+        "title": "spotlit",
         "width": 800,
         "resizable": true,
         "decorations": false,
