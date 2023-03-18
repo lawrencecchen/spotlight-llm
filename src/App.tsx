@@ -24,7 +24,6 @@ const MessageList = React.memo(
     messages: Record<string, ChatMessage>;
   }) {
     const { messageIds, messages } = props;
-    console.log("rendering message list", messageIds, messages);
     return (
       <>
         {messageIds.map((messageId, i) => {
@@ -176,7 +175,10 @@ function Chat(props: {
     `messageIds:${props.id}`,
     []
   );
-  const [openaiApiKey, setApiKey] = useLocalStorage<string>(`openaiApiKey`, "");
+  const [openaiApiKey, setOpenaiApiKey] = useLocalStorage<string>(
+    `openaiApiKey`,
+    ""
+  );
   // const memoMessageIds = useMemo(() => messageIds, []);
 
   const userScrolledUp = useRef(false);
@@ -375,7 +377,7 @@ function Chat(props: {
                     value={openaiApiKey}
                     onFocus={() => setOpenaiApiKeyFocused(true)}
                     onBlur={() => setOpenaiApiKeyFocused(false)}
-                    onChange={(e) => setApiKey(e.target.value)}
+                    onChange={(e) => setOpenaiApiKey(e.target.value)}
                     className="border text-neutral-200 bg-neutral-800/80 border-neutral-700/80 px-2 py-0.5 text-xs rounded-lg mt-2"
                   />
                 </div>

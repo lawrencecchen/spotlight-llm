@@ -1,6 +1,8 @@
+import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import EventEmitter from "node:events";
+import { Configuration, OpenAIApi } from "openai";
 import { z } from "zod";
 import {
   SYSTEM_MESSAGE,
@@ -8,14 +10,15 @@ import {
   messageStore,
   modelSchema,
 } from "./chatgpt";
-import { publicProcedure, router } from "./trpc";
 import { appleCalendar } from "./prompts/appleCalendar";
+import { publicProcedure, router } from "./trpc";
 import { openai } from "./utils/openai";
 import { decideTool } from "./utils/toolRouter";
 
 const eventsMap = new Map<string, EventEmitter>();
 
 export const appRouter = router({
+  health: publicProcedure.query(() => "ok"),
   hello: publicProcedure.query(() => "hi"),
   chat: router({
     onProgress: publicProcedure
@@ -81,16 +84,19 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const { message, ...rest } = input;
-
-        const tool = await decideTool({ message: input.message });
+        const configuration = new Configuration({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+        const openai = new OpenAIApi(configuration);
         const chatgpt = new ChatGPTAPI({
           apiKey: input.apiKey,
           systemMessage: SYSTEM_MESSAGE,
-          messageStore,
           completionParams: {
             model: input.model,
           },
         });
+
+        const tool = await decideTool({ message: input.message, openai });
 
         function emit(message: ChatMessage) {
           if (!eventsMap.has(input.id)) {
@@ -98,38 +104,43 @@ export const appRouter = router({
           }
           eventsMap.get(input.id)?.emit("onProgress", message);
         }
-
-        switch (tool) {
-          case "ChatGPT": {
-            console.log(input.model);
-
-            const response = await chatgpt.sendMessage(message, {
-              ...rest,
-              onProgress(partialResponse) {
-                emit(partialResponse);
-              },
-            });
-            return response;
+        try {
+          switch (tool) {
+            case "ChatGPT": {
+              const response = await chatgpt.sendMessage(message, {
+                ...rest,
+                onProgress(partialResponse) {
+                  emit(partialResponse);
+                },
+              });
+              return response;
+            }
+            case "Calendar": {
+              emit({
+                id: crypto.randomUUID(),
+                role: "assistant",
+                text: "Setting up calendar event...",
+              });
+              const { reply } = await appleCalendar({
+                message: input.message,
+              });
+              const chatMessage = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                text: reply,
+              } satisfies ChatMessage;
+              emit(chatMessage);
+              return chatMessage;
+            }
+            default:
+              throw new Error("Unknown tool");
           }
-          case "Calendar": {
-            emit({
-              id: crypto.randomUUID(),
-              role: "assistant",
-              text: "Setting up calendar event...",
-            });
-            const { reply } = await appleCalendar({
-              message: input.message,
-            });
-            const chatMessage = {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              text: reply,
-            } satisfies ChatMessage;
-            emit(chatMessage);
-            return chatMessage;
-          }
-          default:
-            throw new Error("Unknown tool");
+        } catch (e) {
+          console.error(e);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "oopsies. something went wrong",
+          });
         }
       }),
     summarize: publicProcedure
