@@ -140,6 +140,9 @@ function Chat(props: {
       ...prev,
       [chatMessage.id]: chatMessage,
     }));
+    setTimeout(() => {
+      textareaRef.current?.dispatchEvent(new Event("input"));
+    }, 0);
     scrollToBottom();
   }
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
