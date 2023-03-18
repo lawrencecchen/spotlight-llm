@@ -7,8 +7,8 @@
  * When `tauri build` is ran, it looks for the binary name appended with the platform specific postfix.
  */
 
-const execa = require("execa");
-const fs = require("fs");
+import execa from "execa";
+import fs from "node:fs";
 
 let extension = "";
 if (process.platform === "win32") {

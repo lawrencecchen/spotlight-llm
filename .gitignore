@@ -30,4 +30,7 @@ src-tauri/target
 
 data.sqlite
 
+
+# build outputs
 server-dist
+src-tauri/binaries
