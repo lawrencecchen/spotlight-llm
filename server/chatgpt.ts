@@ -1,7 +1,7 @@
 import { ChatGPTAPI } from "chatgpt";
 import { z } from "zod";
 import { env } from "./env";
-import Keyv from "keyv";
+// import Keyv from "keyv";
 
 const Role = z.enum(["user", "assistant"]);
 export const SendMessageOptionsSchema = z.object({
@@ -24,9 +24,10 @@ export const ChatMessage = z.object({
   detail: z.any().optional(),
 });
 
-export const messageStore = new Keyv("sqlite://data.sqlite", {
-  table: "chats",
-});
+// export const messageStore = new Keyv("sqlite://data.sqlite", {
+//   table: "chats",
+// });
+export const messageStore = undefined;
 
 export const SYSTEM_MESSAGE =
   "You are a helpful assistant. When it makes sense, use markdown syntax to output code, links, tables, etc. If outputting code, include the programming langugage.";

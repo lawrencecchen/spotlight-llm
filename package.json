@@ -16,9 +16,11 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:server": "tsx watch ./server/index.ts",
-    "package": "rollup -c && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.js"
+    "esbuild": "./node_modules/.bin/esbuild ./server/index.ts --bundle --platform=node --format=cjs --loader:.wasm=empty --outfile=./server-dist/index.cjs",
+    "package": "pnpm esbuild && pkg package.json -t node18 --output src-tauri/binaries/app && node scripts/move-binary.js"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.2",
     "@headlessui/react": "^1.7.13",
     "@keyv/sqlite": "^3.6.4",
     "@mantine/hooks": "^5.10.5",
@@ -51,10 +53,6 @@
     "zod": "^3.20.6"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-wasm": "^6.1.2",
     "@tauri-apps/cli": "^1.2.3",
     "@types/autosize": "^4.0.1",
     "@types/node": "^18.14.4",
@@ -64,12 +62,10 @@
     "@types/ws": "^8.5.4",
     "@unocss/reset": "^0.50.3",
     "@vitejs/plugin-react": "^3.1.0",
+    "esbuild": "^0.17.12",
     "execa": "^7.1.1",
     "npm-run-all": "^4.1.5",
     "pkg": "^5.8.1",
-    "rollup": "^3.19.1",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-typescript2": "^0.34.1",
     "tsx": "^3.12.3",
     "typescript": "^4.9.5",
     "unocss": "^0.50.3",

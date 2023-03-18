@@ -21,10 +21,8 @@ async function main() {
   if (!targetTriple) {
     console.error("Failed to determine platform target triple");
   }
-  fs.renameSync(
-    `src-tauri/binaries/app${extension}`,
-    `src-tauri/binaries/app-${targetTriple}${extension}`
-  );
+  const filename = `src-tauri/binaries/app${extension}`;
+  fs.renameSync(filename, `src-tauri/binaries/app-${targetTriple}${extension}`);
 }
 
 main().catch((e) => {
