@@ -1,12 +1,19 @@
 import { observable } from "@trpc/server/observable";
-import { ChatMessage } from "chatgpt";
+import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import EventEmitter from "node:events";
 import { z } from "zod";
-import { SendMessageOptionsSchema, chatgpt } from "./chatgpt";
+import {
+  SYSTEM_MESSAGE,
+  SendMessageOptionsSchema,
+  chatgpt,
+  messageStore,
+  modelSchema,
+} from "./chatgpt";
 import { publicProcedure, router } from "./trpc";
 import { appleCalendar } from "./prompts/appleCalendar";
 import { openai } from "./utils/openai";
 import { decideTool } from "./utils/toolRouter";
+import { env } from "./env";
 
 const eventsMap = new Map<string, EventEmitter>();
 
@@ -69,6 +76,7 @@ export const appRouter = router({
           .object({
             id: z.string(),
             message: z.string(),
+            model: modelSchema.default("gpt-3.5-turbo"),
           })
           .merge(SendMessageOptionsSchema)
       )
@@ -76,8 +84,6 @@ export const appRouter = router({
         const { message, ...rest } = input;
 
         const tool = await decideTool({ message: input.message });
-
-        console.log("tool", tool);
 
         function emit(message: ChatMessage) {
           if (!eventsMap.has(input.id)) {
@@ -88,6 +94,15 @@ export const appRouter = router({
 
         switch (tool) {
           case "ChatGPT": {
+            console.log(input.model);
+            const chatgpt = new ChatGPTAPI({
+              apiKey: env.OPENAI_API_KEY,
+              systemMessage: SYSTEM_MESSAGE,
+              messageStore,
+              completionParams: {
+                model: input.model,
+              },
+            });
             const response = await chatgpt.sendMessage(message, {
               ...rest,
               onProgress(partialResponse) {

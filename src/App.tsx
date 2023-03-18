@@ -1,14 +1,16 @@
+import { RadioGroup } from "@headlessui/react";
 import { HotkeyItem, getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { invoke } from "@tauri-apps/api/tauri";
 import { type ChatMessage } from "chatgpt";
 import clsx from "clsx";
 import { Plus, X } from "lucide-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import { useEventListener, useLocalStorage } from "usehooks-ts";
+import { ModelSchema } from "../server/chatgpt";
 import AutosizeTextarea from "./components/AutosizeTextarea";
 import { CopyToClipboard } from "./components/CopyToClipboard";
 import { LoadingIndicator } from "./components/LoadingIndicator";
@@ -158,6 +160,10 @@ function Chat(props: {
       });
     },
   });
+  const [model, setModel] = useLocalStorage<ModelSchema>(
+    `defaultmodel`,
+    "gpt-3.5-turbo"
+  );
   const [conversationId, setConversationId] = useLocalStorage<
     string | undefined
   >(`conversationId:${props.id}`, undefined);
@@ -230,8 +236,12 @@ function Chat(props: {
   );
 
   useEventListener("focus", () => {
-    textareaRef.current?.select();
+    textareaRef.current?.focus();
   });
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [model]);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -254,6 +264,7 @@ function Chat(props: {
       message,
       conversationId,
       parentMessageId: sendMessage.data?.id,
+      model,
     });
     setMessage("");
     const chatMessage = {
@@ -277,6 +288,18 @@ function Chat(props: {
     bottomRef.current?.scrollIntoView({});
   }, []);
 
+  const hotkeys: Array<HotkeyItem> = [
+    [
+      "tab",
+      (e) => {
+        e.preventDefault();
+        setModel(model === "gpt-3.5-turbo" ? "gpt-4" : "gpt-3.5-turbo");
+      },
+    ],
+  ];
+
+  useHotkeys(hotkeys);
+
   return (
     <>
       <div
@@ -289,7 +312,52 @@ function Chat(props: {
             className="self-center justify-self-center grow grid place-content-center w-full text-neutral-400 text-sm cursor-default select-none"
             data-tauri-drag-region
           >
-            How can I help you?
+            <div data-tauri-drag-region className="text-center">
+              How can I help you?
+            </div>
+            <div className="text-center mt-4">
+              <RadioGroup value={model} onChange={setModel} className="mt-2">
+                <RadioGroup.Label className="sr-only">
+                  {" "}
+                  Choose a model{" "}
+                </RadioGroup.Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <RadioGroup.Option
+                    value="gpt-3.5-turbo"
+                    className={({ active, checked }) =>
+                      clsx(
+                        "cursor-pointer focus:outline-none",
+                        {
+                          "bg-neutral-100/80 text-black": checked,
+                          "bg-neutral-700/80 text-neutral-300": !checked,
+                        },
+                        "flex items-center justify-center rounded-md py-1 px-2 text-xs sm:flex-1"
+                      )
+                    }
+                  >
+                    <RadioGroup.Label as="span">gpt-3.5-turbo</RadioGroup.Label>
+                  </RadioGroup.Option>
+                  <RadioGroup.Option
+                    value="gpt-4"
+                    className={({ active, checked }) =>
+                      clsx(
+                        "cursor-pointer focus:outline-none",
+                        {
+                          "bg-neutral-100/80 text-black": checked,
+                          "bg-neutral-700/80 text-neutral-300": !checked,
+                        },
+                        "flex items-center justify-center rounded-md py-1 px-2 text-xs sm:flex-1"
+                      )
+                    }
+                  >
+                    <RadioGroup.Label as="span">gpt-4</RadioGroup.Label>
+                  </RadioGroup.Option>
+                </div>
+                <div data-tauri-drag-region className="text-center mt-1.5">
+                  <code className="text-xs">tab</code> to toggle
+                </div>
+              </RadioGroup>
+            </div>
           </div>
         )}
         <MessageList messageIds={messageIds} messages={messages} />
@@ -315,6 +383,7 @@ function Chat(props: {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={async (e) => {
+          getHotkeyHandler(hotkeys)(e);
           props.onKeyDown?.(e);
           if (e.key === "Enter" && !e.shiftKey && message.trim().length > 0) {
             e.preventDefault();

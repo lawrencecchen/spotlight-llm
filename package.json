@@ -12,6 +12,7 @@
     "dev:server": "tsx watch ./server/index.ts"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.13",
     "@keyv/sqlite": "^3.6.4",
     "@mantine/hooks": "^5.10.5",
     "@tanstack/react-query": "^4.24.10",
