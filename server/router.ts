@@ -85,7 +85,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const { message, ...rest } = input;
         const configuration = new Configuration({
-          apiKey: process.env.OPENAI_API_KEY,
+          apiKey: input.apiKey,
         });
         const openai = new OpenAIApi(configuration);
         const chatgpt = new ChatGPTAPI({
@@ -144,8 +144,18 @@ export const appRouter = router({
         }
       }),
     summarize: publicProcedure
-      .input(z.object({ userInput: z.string(), assistantOutput: z.string() }))
+      .input(
+        z.object({
+          userInput: z.string(),
+          assistantOutput: z.string(),
+          apiKey: z.string(),
+        })
+      )
       .mutation(async ({ input }) => {
+        const configuration = new Configuration({
+          apiKey: input.apiKey,
+        });
+        const openai = new OpenAIApi(configuration);
         const response = await openai.createChatCompletion({
           model: "gpt-3.5-turbo-0301",
           messages: [
