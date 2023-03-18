@@ -29,3 +29,5 @@ src-tauri/target
 .env
 
 data.sqlite
+
+server-dist
