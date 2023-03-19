@@ -1,7 +1,8 @@
+import { OpenAIApi } from "openai";
 import { z } from "zod";
-import { openai } from "./openai";
 
-export async function decideTool(opts: { message: string }) {
+export async function decideTool(opts: { message: string; openai: OpenAIApi }) {
+  return "ChatGPT";
   const taskRouterPrompt = `Decide what tools to use to respond to a user message. Possible tools:
 - Calendar
 - ChatGPT
@@ -18,7 +19,7 @@ Example 3:
 Message: ${opts.message}
 Tool: `;
 
-  const completion = await openai.createChatCompletion({
+  const completion = await opts.openai.createChatCompletion({
     model: "gpt-3.5-turbo-0301",
     messages: [
       {

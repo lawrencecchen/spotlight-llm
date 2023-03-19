@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { Plus, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { CodeProps, ReactMarkdownProps } from "react-markdown/lib/ast-to-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
@@ -16,15 +17,108 @@ import { CopyToClipboard } from "./components/CopyToClipboard";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import { trpc } from "./utils/trpc";
 
-type ChatSummarizePayload = { userInput: string; assistantOutput: string };
+type ChatSummarizePayload = {
+  userInput: string;
+  assistantOutput: string;
+  apiKey: string;
+};
 
-const MessageList = React.memo(
+const P = React.memo(
+  function P({
+    node,
+    ...props
+  }: Omit<
+    React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLParagraphElement>,
+      HTMLParagraphElement
+    >,
+    "ref"
+  > &
+    ReactMarkdownProps) {
+    return <p className="py-1" {...props} />;
+  },
+  function arePropsEqual(oldProps, newProps) {
+    return String(oldProps.children) === String(newProps.children);
+  }
+);
+
+export const Code = React.memo(
+  function Code({ node, inline, className, children, ...props }: CodeProps) {
+    const match = /language-(\w+)/.exec(className || "");
+    const customStyle = {
+      fontSize: "0.8rem",
+      borderRadius: "0px",
+      borderBottomLeftRadius: "0.375rem",
+      borderBottomRightRadius: "0.375rem",
+      marginTop: "0px",
+      display: "block",
+      overflow: "auto",
+    };
+    if (inline) {
+      return <code className="text-sm">{children}</code>;
+    }
+    return (
+      <span className="block flex flex-col rounded-md my-2">
+        <span className="block rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
+          <span className="font-sans text-xs">{match?.[1] || "Code"}</span>
+          <span className="block ml-auto mr-0">
+            <CopyToClipboard content={String(children)} />
+          </span>
+        </span>
+        {match ? (
+          <SyntaxHighlighter
+            style={materialDark as any}
+            children={String(children).replace(/\n$/, "")}
+            language={match[1].toLowerCase()}
+            PreTag="span"
+            customStyle={customStyle}
+            {...props}
+          />
+        ) : (
+          <code
+            className={clsx("px-3 py-2", className)}
+            style={{
+              ...customStyle,
+              backgroundColor: "rgb(35,35,35)",
+            }}
+            {...props}
+          >
+            {children}
+          </code>
+        )}
+      </span>
+    );
+  },
+  function arePropsEqual(oldProps, newProps) {
+    const cond = String(oldProps.children) === String(newProps.children);
+    return cond;
+  }
+);
+
+export const MessageItemMarkdown = React.memo(
+  function MessageItemMarkdown(props: { text: string }) {
+    return (
+      <ReactMarkdown
+        children={props.text}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code: Code,
+          p: P,
+          a({ node, ...props }) {
+            return <a target="_blank" rel="noopener noreferrer" {...props} />;
+          },
+        }}
+      />
+    );
+  }
+);
+
+export const MessageList = React.memo(
   function MessageList(props: {
     messageIds: string[];
     messages: Record<string, ChatMessage>;
   }) {
     const { messageIds, messages } = props;
-    console.log("rendering message list", messageIds, messages);
     return (
       <>
         {messageIds.map((messageId, i) => {
@@ -36,74 +130,7 @@ const MessageList = React.memo(
                   "text-neutral-400": message.role === "user",
                 })}
               >
-                <ReactMarkdown
-                  children={message.text}
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ node, inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      const customStyle = {
-                        fontSize: "0.8rem",
-                        borderRadius: "0px",
-                        borderBottomLeftRadius: "0.375rem",
-                        borderBottomRightRadius: "0.375rem",
-                        marginTop: "0px",
-                        display: "block",
-                        overflow: "auto",
-                      };
-                      if (inline) {
-                        return <code className="text-sm">{children}</code>;
-                      }
-                      return (
-                        <span className="block flex flex-col rounded-md my-2">
-                          <span className="block rounded-t-md flex items-center pl-2 bg-neutral-600 py-0.5 select-none cursor-default">
-                            <span className="font-sans text-xs">
-                              {match?.[1] || "Code"}
-                            </span>
-                            <span className="block ml-auto mr-0">
-                              <CopyToClipboard content={String(children)} />
-                            </span>
-                          </span>
-                          {match ? (
-                            <SyntaxHighlighter
-                              style={materialDark as any}
-                              children={String(children).replace(/\n$/, "")}
-                              language={match[1].toLowerCase()}
-                              PreTag="span"
-                              customStyle={customStyle}
-                              {...props}
-                            />
-                          ) : (
-                            <code
-                              className={clsx("px-3 py-2", className)}
-                              style={{
-                                ...customStyle,
-                                backgroundColor: "rgb(35,35,35)",
-                              }}
-                              {...props}
-                            >
-                              {children}
-                            </code>
-                          )}
-                        </span>
-                      );
-                    },
-                    // give paragraphs a margin
-                    p({ node, ...props }) {
-                      return <p className="py-1" {...props} />;
-                    },
-                    // links should open in a new tab
-                    a({ node, ...props }) {
-                      return (
-                        <a
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          {...props}
-                        />
-                      );
-                    },
-                  }}
-                />
+                <MessageItemMarkdown text={message.text} />
               </div>
               {i !== messageIds.length - 1 && (
                 <hr className="my-2 border-neutral-800/90 text-neutral-800 select-none" />
@@ -151,12 +178,17 @@ function Chat(props: {
   onSuccess?: (opts: ChatSummarizePayload) => void;
 }) {
   const [message, setMessage] = useLocalStorage(`message:${props.id}`, "");
+  const [openaiApiKey, setOpenaiApiKey] = useLocalStorage<string>(
+    `openaiApiKey`,
+    ""
+  );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const sendMessage = trpc.chat.sendMessage.useMutation({
     onSuccess(data, variables) {
       props.onSuccess?.({
         userInput: variables.message,
         assistantOutput: data.text,
+        apiKey: openaiApiKey,
       });
     },
   });
@@ -176,6 +208,7 @@ function Chat(props: {
     `messageIds:${props.id}`,
     []
   );
+
   // const memoMessageIds = useMemo(() => messageIds, []);
 
   const userScrolledUp = useRef(false);
@@ -265,6 +298,7 @@ function Chat(props: {
       conversationId,
       parentMessageId: sendMessage.data?.id,
       model,
+      apiKey: openaiApiKey,
     });
     setMessage("");
     const chatMessage = {
@@ -300,12 +334,20 @@ function Chat(props: {
 
   useHotkeys(hotkeys);
 
+  const [apiKeyFocused, setApiKeyFocused] = useState(false);
+
   return (
     <>
       <div
         className="grow text-white py-2 overflow-auto flex flex-col"
         data-tauri-drag-region
         onWheel={handleWheel}
+        onClick={() => {
+          setApiKeyFocused(false);
+          if (apiKeyFocused) {
+            textareaRef.current?.focus?.();
+          }
+        }}
       >
         {messageIds.length === 0 && (
           <div
@@ -318,8 +360,7 @@ function Chat(props: {
             <div className="text-center mt-4">
               <RadioGroup value={model} onChange={setModel} className="mt-2">
                 <RadioGroup.Label className="sr-only">
-                  {" "}
-                  Choose a model{" "}
+                  Choose a model
                 </RadioGroup.Label>
                 <div className="grid grid-cols-2 gap-2">
                   <RadioGroup.Option
@@ -358,6 +399,18 @@ function Chat(props: {
                   className="text-center mt-3 text-xs"
                 >
                   <code className="text-[11px]">tab</code> to toggle
+                </div>
+                <div className="text-center text-xs">
+                  <input
+                    type={apiKeyFocused ? "text" : "password"}
+                    tabIndex={-1}
+                    placeholder="OPENAI_API_KEY"
+                    value={openaiApiKey}
+                    onFocus={() => setApiKeyFocused(true)}
+                    onBlur={() => setApiKeyFocused(false)}
+                    onChange={(e) => setOpenaiApiKey(e.target.value)}
+                    className="border text-neutral-200 bg-neutral-800/80 border-neutral-700/80 px-2 py-0.5 text-xs rounded-lg mt-2"
+                  />
                 </div>
               </RadioGroup>
             </div>

@@ -29,3 +29,8 @@ src-tauri/target
 .env
 
 data.sqlite
+
+
+# build outputs
+server-dist
+src-tauri/binaries
