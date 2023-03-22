@@ -292,11 +292,11 @@ function Chat(props: {
     } else if (sendMessage.isLoading) {
       return;
     }
+    console.log(messageIds);
     sendMessage.mutate({
       id: props.id,
       message,
-      conversationId,
-      parentMessageId: sendMessage.data?.id,
+      parentMessageId: messageIds[messageIds.length - 1],
       model,
       apiKey: openaiApiKey,
     });

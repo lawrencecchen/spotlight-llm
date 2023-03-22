@@ -17,6 +17,17 @@ import { decideTool } from "./utils/toolRouter";
 
 const eventsMap = new Map<string, EventEmitter>();
 
+let chatgpt: ChatGPTAPI | null = null;
+export function getChatgpt(opts: { apiKey: string }) {
+  if (!chatgpt) {
+    chatgpt = new ChatGPTAPI({
+      apiKey: opts.apiKey,
+      systemMessage: SYSTEM_MESSAGE,
+    });
+  }
+  return chatgpt;
+}
+
 export const appRouter = router({
   health: publicProcedure.query(() => "ok"),
   hello: publicProcedure.query(() => "hi"),
@@ -83,32 +94,28 @@ export const appRouter = router({
           .merge(SendMessageOptionsSchema)
       )
       .mutation(async ({ input }) => {
-        const { message, ...rest } = input;
+        const { message, id, ...rest } = input;
         const configuration = new Configuration({
           apiKey: input.apiKey,
         });
         const openai = new OpenAIApi(configuration);
-        const chatgpt = new ChatGPTAPI({
-          apiKey: input.apiKey,
-          systemMessage: SYSTEM_MESSAGE,
-          completionParams: {
-            model: input.model,
-          },
-        });
-
+        const chatgpt = getChatgpt({ apiKey: input.apiKey });
         const tool = await decideTool({ message: input.message, openai });
 
         function emit(message: ChatMessage) {
-          if (!eventsMap.has(input.id)) {
-            eventsMap.set(input.id, new EventEmitter());
+          if (!eventsMap.has(id)) {
+            eventsMap.set(id, new EventEmitter());
           }
-          eventsMap.get(input.id)?.emit("onProgress", message);
+          eventsMap.get(id)?.emit("onProgress", message);
         }
         try {
           switch (tool) {
             case "ChatGPT": {
               const response = await chatgpt.sendMessage(message, {
                 ...rest,
+                completionParams: {
+                  model: input.model,
+                },
                 onProgress(partialResponse) {
                   emit(partialResponse);
                 },
@@ -157,7 +164,7 @@ export const appRouter = router({
         });
         const openai = new OpenAIApi(configuration);
         const response = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo-0301",
+          model: "gpt-3.5-turbo",
           messages: [
             {
               role: "user",
