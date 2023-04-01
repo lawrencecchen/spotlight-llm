@@ -434,7 +434,7 @@ function Chat(props: {
       <AutosizeTextarea
         ref={textareaRef}
         placeholder="`⌘ + t` to start a new chat"
-        className="w-full bg-transparent focus:outline-none text-neutral-50 text-xl px-4 pb-2.5 pt-2.5 shrink-0 border-t border-neutral-800/50 placeholder:text-neutral-400"
+        className="w-full bg-transparent focus:outline-none text-neutral-50 text-xl px-4 pb-2.5 pt-2.5 shrink-0 border-t border-neutral-800/50 placeholder:text-neutral-400 max-h-96"
         rows={1}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
