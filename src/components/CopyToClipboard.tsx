@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useTimeout, useClipboard } from "@mantine/hooks";
-import { Clipboard, Check } from "lucide-react";
+import { useClipboard } from "@mantine/hooks";
+import { Check, Clipboard } from "lucide-react";
 
 export function CopyToClipboard(props: { content: string }) {
   const clipboard = useClipboard({ timeout: 2000 });

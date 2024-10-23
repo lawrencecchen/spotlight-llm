@@ -140,7 +140,7 @@ fn register_shortcut(window: &Window<Wry>) {
     let mut shortcut_manager = window.app_handle().global_shortcut_manager();
 
     shortcut_manager
-        .register("Cmd+Shift+Space", move || {
+        .register("Option+Shift+Space", move || {
             position_window_at_the_center_of_the_monitor_with_cursor(&window);
             // let script = Script::new(
             //     r#"tell application "System Events"
